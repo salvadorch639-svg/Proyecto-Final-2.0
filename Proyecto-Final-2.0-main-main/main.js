@@ -521,7 +521,7 @@ function createPerson(
     new THREE.CapsuleGeometry(0.45, 0.9, 6, 12),
     uniformMat
   );
-  torso.position.y = 1.2;
+  torso.position.y = 1.0;
   torso.castShadow = true;
   person.add(torso);
 
