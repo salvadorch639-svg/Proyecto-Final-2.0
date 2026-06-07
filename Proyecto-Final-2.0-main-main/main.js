@@ -536,13 +536,13 @@ function createPerson(
   });
 
   // =========================
-  // CUERPO (más estilizado)
+  // CUERPO (más cuadrado)
   // =========================
   const torso = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.45, 0.9, 6, 12),
+    new THREE.BoxGeometry(0.9, 1.0, 0.9),
     uniformMat
   );
-  torso.position.y = 1.0;
+  torso.position.y = 1.05;
   torso.castShadow = true;
   person.add(torso);
 
@@ -554,7 +554,7 @@ function createPerson(
       metalness: 0.2
     })
   );
-  belt.position.set(0, 0.4, 0.25);
+  belt.position.set(0, 0.85, 0.25);
   person.add(belt);
 
   const buckle = new THREE.Mesh(
@@ -565,8 +565,23 @@ function createPerson(
       metalness: 0.9
     })
   );
-  buckle.position.set(0, 0.4, 0.35);
+  buckle.position.set(0, 0.85, 0.35);
   person.add(buckle);
+
+  const leftPouch = new THREE.Mesh(
+    new THREE.BoxGeometry(0.14, 0.16, 0.1),
+    new THREE.MeshStandardMaterial({
+      color: 0x111111,
+      roughness: 0.35,
+      metalness: 0.1
+    })
+  );
+  leftPouch.position.set(-0.27, 0.85, 0.35);
+  person.add(leftPouch);
+
+  const rightPouch = leftPouch.clone();
+  rightPouch.position.x = 0.27;
+  person.add(rightPouch);
 
   if (type === "police") {
     const badge = new THREE.Mesh(
@@ -593,6 +608,25 @@ function createPerson(
     const shoulderPatchR = shoulderPatch.clone();
     shoulderPatchR.position.x = 0.45;
     person.add(shoulderPatchR);
+
+    const vest = new THREE.Mesh(
+      new THREE.BoxGeometry(0.75, 0.75, 0.25),
+      uniformMat
+    );
+    vest.position.set(0, 1.05, 0.2);
+    vest.rotation.x = 0.03;
+    person.add(vest);
+
+    const radio = new THREE.Mesh(
+      new THREE.BoxGeometry(0.12, 0.25, 0.08),
+      new THREE.MeshStandardMaterial({
+        color: 0x111111,
+        roughness: 0.35,
+        metalness: 0.2
+      })
+    );
+    radio.position.set(-0.38, 1.35, 0.3);
+    person.add(radio);
   }
 
   if (type === "detective") {
@@ -638,6 +672,24 @@ function createPerson(
     coatFlapR.position.x = 0.28;
     coatFlapR.rotation.z = 0.08;
     person.add(coatFlapR);
+
+    const hair = new THREE.Mesh(
+      new THREE.SphereGeometry(0.35, 16, 16),
+      new THREE.MeshStandardMaterial({
+        color: 0x22150f,
+        roughness: 0.6
+      })
+    );
+    hair.scale.y = 0.65;
+    hair.position.set(0, 2.72, 0);
+    person.add(hair);
+
+    const coatBack = new THREE.Mesh(
+      new THREE.BoxGeometry(0.9, 1.3, 0.1),
+      uniformMat
+    );
+    coatBack.position.set(0, 0.8, -0.2);
+    person.add(coatBack);
   }
 
   // =========================
@@ -647,14 +699,14 @@ function createPerson(
     new THREE.CylinderGeometry(0.14, 0.16, 0.18, 10),
     skinMat
   );
-  neck.position.y = 2.05;
+  neck.position.y = 1.9;
   person.add(neck);
 
   const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.34, 16, 16),
+    new THREE.SphereGeometry(0.42, 20, 20),
     skinMat
   );
-  head.position.y = 2.55;
+  head.position.y = 2.25;
   head.castShadow = true;
   person.add(head);
 
@@ -664,12 +716,35 @@ function createPerson(
     new THREE.SphereGeometry(0.05, 10, 10),
     eyeMat
   );
-  eyeL.position.set(-0.12, 2.55, 0.28);
+  eyeL.position.set(-0.13, 0.22, 0.42);
 
   const eyeR = eyeL.clone();
-  eyeR.position.x = 0.12;
+  eyeR.position.x = 0.13;
 
-  person.add(eyeL, eyeR);
+  const nose = new THREE.Mesh(
+    new THREE.ConeGeometry(0.045, 0.14, 8),
+    skinMat
+  );
+  nose.rotation.x = Math.PI / 2;
+  nose.position.set(0, 0.06, 0.44);
+
+  const mouth = new THREE.Mesh(
+    new THREE.BoxGeometry(0.16, 0.03, 0.04),
+    new THREE.MeshStandardMaterial({ color: 0x772222, roughness: 0.7 })
+  );
+  mouth.position.set(0, -0.08, 0.45);
+  mouth.rotation.x = 0.02;
+
+  const earL = new THREE.Mesh(
+    new THREE.SphereGeometry(0.06, 8, 8),
+    skinMat
+  );
+  earL.position.set(-0.45, 0.02, 0);
+
+  const earR = earL.clone();
+  earR.position.x = 0.45;
+
+  head.add(eyeL, eyeR, nose, mouth, earL, earR);
 
   // =========================
   // BRAZOS (más naturales)
@@ -688,7 +763,7 @@ function createPerson(
     );
 
     const hand = new THREE.Mesh(
-      new THREE.SphereGeometry(0.12, 10, 10),
+      new THREE.BoxGeometry(0.18, 0.22, 0.12),
       skinMat
     );
 
@@ -703,36 +778,60 @@ function createPerson(
 
   const leftArm = arm(-0.75);
   const rightArm = arm(0.75);
+
+  if (type === "police") {
+    leftArm.position.y = 1.45;
+    leftArm.position.z = -0.1;
+    leftArm.rotation.x = -0.65;
+    leftArm.rotation.z = 0.12;
+
+    rightArm.position.y = 1.45;
+    rightArm.position.z = -0.1;
+    rightArm.rotation.x = -0.85;
+    rightArm.rotation.z = -0.12;
+  }
+
   person.add(leftArm, rightArm);
 
   if (type === "detective") {
-    const magnifyingGlass = new THREE.Group();
+    const cameraGroup = new THREE.Group();
+    cameraGroup.position.set(0.08, -0.92, -0.18);
+    cameraGroup.rotation.set(-0.15, 0.18, -0.18);
 
-    const glassLens = new THREE.Mesh(
-      new THREE.TorusGeometry(0.13, 0.02, 16, 24),
+    const cameraBody = new THREE.Mesh(
+      new THREE.BoxGeometry(0.25, 0.16, 0.12),
       new THREE.MeshStandardMaterial({
-        color: 0x9ad4ff,
-        roughness: 0.2,
-        metalness: 0.4,
+        color: 0x1a1a1a,
+        roughness: 0.35,
+        metalness: 0.25
+      })
+    );
+
+    const cameraLens = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.065, 0.065, 0.04, 16),
+      new THREE.MeshStandardMaterial({
+        color: 0x88c0ff,
         transparent: true,
-        opacity: 0.65
+        opacity: 0.45,
+        roughness: 0.1,
+        metalness: 0.6
       })
     );
-    glassLens.rotation.x = Math.PI / 2;
-    glassLens.position.set(0, -1.0, 0.1);
+    cameraLens.rotation.x = -Math.PI / 2;
+    cameraLens.position.set(0, 0, -0.08);
 
-    const glassHandle = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.03, 0.03, 0.45, 10),
+    const cameraFlash = new THREE.Mesh(
+      new THREE.BoxGeometry(0.08, 0.08, 0.04),
       new THREE.MeshStandardMaterial({
-        color: 0x3f3128,
-        roughness: 0.6
+        color: 0xf8f1a0,
+        roughness: 0.3,
+        metalness: 0.8
       })
     );
-    glassHandle.rotation.x = Math.PI / 2;
-    glassHandle.position.set(0, -1.25, 0.12);
+    cameraFlash.position.set(0.09, 0.05, -0.02);
 
-    magnifyingGlass.add(glassLens, glassHandle);
-    rightArm.add(magnifyingGlass);
+    cameraGroup.add(cameraBody, cameraLens, cameraFlash);
+    rightArm.add(cameraGroup);
   }
 
   // =========================
@@ -788,52 +887,55 @@ function createPerson(
     });
 
     const hat = new THREE.Group();
+    hat.position.y = 2.55;
 
     if (type === "police") {
       const hatTop = new THREE.Mesh(
         new THREE.CylinderGeometry(0.42, 0.45, 0.22, 16),
         hatMat
       );
-      hatTop.position.y = 3.1;
+      hatTop.position.y = 0.08;
 
       const hatBrim = new THREE.Mesh(
         new THREE.CylinderGeometry(0.6, 0.6, 0.05, 16),
         hatMat
       );
-      hatBrim.position.y = 2.9;
+      hatBrim.position.y = 0;
 
       const hatFront = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, 0.18, 0.18),
+        new THREE.BoxGeometry(0.6, 0.18, 0.22),
         hatMat
       );
-      hatFront.position.set(0, 3.2, 0.18);
+      hatFront.position.set(0, 0.10, 0.22);
 
       const badgePlate = new THREE.Mesh(
         new THREE.CylinderGeometry(0.1, 0.1, 0.03, 12),
         new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 })
       );
       badgePlate.rotation.x = Math.PI / 2;
-      badgePlate.position.set(0, 3.15, 0.27);
+      badgePlate.position.set(0, 0.08, 0.26);
 
       hat.add(hatTop, hatBrim, hatFront, badgePlate);
     } else {
+      hat.position.y = 2.7;
+
       const crown = new THREE.Mesh(
         new THREE.CylinderGeometry(0.34, 0.38, 0.3, 16),
         hatMat
       );
-      crown.position.y = 3.05;
+      crown.position.y = 0.18;
 
       const brim = new THREE.Mesh(
         new THREE.CylinderGeometry(0.58, 0.58, 0.05, 16),
         hatMat
       );
-      brim.position.y = 2.85;
+      brim.position.y = 0.02;
 
       const crease = new THREE.Mesh(
         new THREE.BoxGeometry(0.28, 0.06, 0.12),
         new THREE.MeshStandardMaterial({ color: 0x1c1612, roughness: 0.7 })
       );
-      crease.position.set(0, 3.12, 0);
+      crease.position.set(0, 0.18, 0);
       crease.rotation.x = 0.1;
 
       hat.add(crown, brim, crease);
@@ -851,7 +953,7 @@ function createPerson(
     rightLeg
   };
 
-  person.position.set(x, 0, z);
+  person.position.set(x, 0.6, z);
 
   scene.add(person);
   return person;
@@ -1178,31 +1280,38 @@ function animateOfficer1(p, t) {
 function animateOfficer2(p, t) {
   const u = p.userData;
 
-  u.head.rotation.y = Math.sin(t * 0.8) * 1.0;
-  u.torso.rotation.y = Math.sin(t * 0.8) * 0.25;
+  u.head.rotation.x = 0.4;
+  u.head.rotation.y = Math.sin(t * 0.5) * 0.2;
 
-  u.leftArm.rotation.x = -0.3;
-  u.rightArm.rotation.x = -0.3;
+  u.rightArm.rotation.x = -1.4 + Math.sin(t * 10) * 0.05;
+  u.rightArm.rotation.z = 0.2;
 
-  u.torso.position.y = 1.7 + Math.sin(t * 2) * 0.01;
-  p.position.x = 3 + Math.sin(t * 1.5) * 0.08;
+  u.leftArm.rotation.x = -0.6;
+
+  u.torso.rotation.z = Math.sin(t * 0.6) * 0.03;
+
+  p.position.x = 3 + Math.sin(t * 1.2) * 0.05;
 }
 
 function animateDetective(p, t) {
   const u = p.userData;
 
-  p.position.x = Math.sin(t * 0.25) * 2;
-  p.position.z = -1 + Math.cos(t * 0.25) * 1.2;
+  const radius = 2.2;
+  const speed = 0.2;
 
-  p.lookAt(0, 0, -1);
+  p.position.x = Math.cos(t * speed) * radius;
+  p.position.z = -1 + Math.sin(t * speed) * radius;
+  p.position.y = 0.6;
 
-  u.torso.rotation.x = 0.15;
+  p.lookAt(0, 0.6, -1);
+
+  u.torso.rotation.x = 0;
 
   u.rightArm.rotation.x = -1.2 + Math.sin(t * 2) * 0.03;
   u.leftArm.rotation.x = -0.8;
 
   u.head.rotation.y = Math.sin(t * 0.4) * 0.2;
-  u.head.rotation.x = 0.1 + Math.sin(t * 0.6) * 0.05;
+  u.head.rotation.x = 0.05 + Math.sin(t * 0.6) * 0.02;
 }
 
 function rainReaction(person, t) {
