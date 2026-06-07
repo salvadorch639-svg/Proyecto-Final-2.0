@@ -486,14 +486,17 @@ function createPerson(
 
   const colors = {
     police: {
-      uniform: 0x0a2f6b,
+      uniform: 0x0b2f6b,
       pants: 0x111827,
-      accent: 0xffffff
+      accent: 0xffffff,
+      trim: 0xcfd8ff
     },
     detective: {
-      uniform: 0x2a1f1a,
-      pants: 0x1a1a1a,
-      accent: 0x3b2f2f
+      uniform: 0x2d2520,
+      pants: 0x111827,
+      shirt: 0xcfc1a6,
+      accent: 0x4f3626,
+      tie: 0x553a28
     }
   };
 
@@ -501,17 +504,35 @@ function createPerson(
 
   const uniformMat = new THREE.MeshStandardMaterial({
     color: cfg.uniform,
-    roughness: 0.85
+    roughness: 0.75,
+    metalness: 0.05
   });
 
   const pantsMat = new THREE.MeshStandardMaterial({
     color: cfg.pants,
-    roughness: 0.95
+    roughness: 0.92,
+    metalness: 0.02
   });
 
   const skinMat = new THREE.MeshStandardMaterial({
     color: skin,
-    roughness: 0.6
+    roughness: 0.55
+  });
+
+  const accentMat = new THREE.MeshStandardMaterial({
+    color: cfg.accent || 0xffffff,
+    roughness: 0.5,
+    metalness: 0.2
+  });
+
+  const shirtMat = new THREE.MeshStandardMaterial({
+    color: cfg.shirt || 0x2a1f1a,
+    roughness: 0.85
+  });
+
+  const tieMat = new THREE.MeshStandardMaterial({
+    color: cfg.tie || 0x1b2631,
+    roughness: 0.7
   });
 
   // =========================
@@ -525,21 +546,115 @@ function createPerson(
   torso.castShadow = true;
   person.add(torso);
 
+  const belt = new THREE.Mesh(
+    new THREE.BoxGeometry(0.9, 0.14, 0.22),
+    new THREE.MeshStandardMaterial({
+      color: 0x111111,
+      roughness: 0.35,
+      metalness: 0.2
+    })
+  );
+  belt.position.set(0, 0.4, 0.25);
+  person.add(belt);
+
+  const buckle = new THREE.Mesh(
+    new THREE.BoxGeometry(0.16, 0.08, 0.05),
+    new THREE.MeshStandardMaterial({
+      color: 0xd6c66f,
+      roughness: 0.25,
+      metalness: 0.9
+    })
+  );
+  buckle.position.set(0, 0.4, 0.35);
+  person.add(buckle);
+
+  if (type === "police") {
+    const badge = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 0.25, 0.05),
+      new THREE.MeshStandardMaterial({
+        color: 0xffd700,
+        metalness: 0.8,
+        roughness: 0.3
+      })
+    );
+    badge.position.set(0.25, 1.35, 0.45);
+    person.add(badge);
+
+    const shoulderPatch = new THREE.Mesh(
+      new THREE.BoxGeometry(0.22, 0.08, 0.08),
+      new THREE.MeshStandardMaterial({
+        color: 0xcfd8ff,
+        roughness: 0.4
+      })
+    );
+    shoulderPatch.position.set(-0.45, 1.35, 0.32);
+    person.add(shoulderPatch);
+
+    const shoulderPatchR = shoulderPatch.clone();
+    shoulderPatchR.position.x = 0.45;
+    person.add(shoulderPatchR);
+  }
+
+  if (type === "detective") {
+    const shirt = new THREE.Mesh(
+      new THREE.BoxGeometry(0.38, 0.55, 0.05),
+      shirtMat
+    );
+    shirt.position.set(0, 1.15, 0.24);
+    person.add(shirt);
+
+    const tie = new THREE.Mesh(
+      new THREE.BoxGeometry(0.12, 0.5, 0.05),
+      tieMat
+    );
+    tie.position.set(0, 0.95, 0.26);
+    person.add(tie);
+
+    const lapelLeft = new THREE.Mesh(
+      new THREE.BoxGeometry(0.16, 0.5, 0.05),
+      new THREE.MeshStandardMaterial({
+        color: cfg.accent,
+        roughness: 0.78
+      })
+    );
+    lapelLeft.position.set(-0.22, 1.5, 0.24);
+    lapelLeft.rotation.z = -0.2;
+    person.add(lapelLeft);
+
+    const lapelRight = lapelLeft.clone();
+    lapelRight.position.x = 0.22;
+    lapelRight.rotation.z = 0.2;
+    person.add(lapelRight);
+
+    const coatFlapL = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 0.8, 0.05),
+      uniformMat
+    );
+    coatFlapL.position.set(-0.28, 0.7, 0.24);
+    coatFlapL.rotation.z = -0.08;
+    person.add(coatFlapL);
+
+    const coatFlapR = coatFlapL.clone();
+    coatFlapR.position.x = 0.28;
+    coatFlapR.rotation.z = 0.08;
+    person.add(coatFlapR);
+  }
+
   // =========================
   // CABEZA + CUELLO
   // =========================
   const neck = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.14, 0.16, 0.3, 10),
+    new THREE.CylinderGeometry(0.14, 0.16, 0.18, 10),
     skinMat
   );
-  neck.position.y = 2.1;
+  neck.position.y = 2.05;
   person.add(neck);
 
   const head = new THREE.Mesh(
     new THREE.SphereGeometry(0.34, 16, 16),
     skinMat
   );
-  head.position.y = 2.6;
+  head.position.y = 2.55;
   head.castShadow = true;
   person.add(head);
 
@@ -563,12 +678,12 @@ function createPerson(
     const g = new THREE.Group();
 
     const upper = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.12, 0.14, 0.55, 10),
+      new THREE.CylinderGeometry(0.12, 0.14, 0.45, 10),
       uniformMat
     );
 
     const lower = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.11, 0.13, 0.55, 10),
+      new THREE.CylinderGeometry(0.11, 0.13, 0.45, 10),
       uniformMat
     );
 
@@ -578,8 +693,8 @@ function createPerson(
     );
 
     upper.position.y = -0.25;
-    lower.position.y = -0.85;
-    hand.position.y = -1.25;
+    lower.position.y = -0.75;
+    hand.position.y = -1.05;
 
     g.add(upper, lower, hand);
     g.position.set(xSide, offset, 0);
@@ -590,6 +705,36 @@ function createPerson(
   const rightArm = arm(0.75);
   person.add(leftArm, rightArm);
 
+  if (type === "detective") {
+    const magnifyingGlass = new THREE.Group();
+
+    const glassLens = new THREE.Mesh(
+      new THREE.TorusGeometry(0.13, 0.02, 16, 24),
+      new THREE.MeshStandardMaterial({
+        color: 0x9ad4ff,
+        roughness: 0.2,
+        metalness: 0.4,
+        transparent: true,
+        opacity: 0.65
+      })
+    );
+    glassLens.rotation.x = Math.PI / 2;
+    glassLens.position.set(0, -1.0, 0.1);
+
+    const glassHandle = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.03, 0.03, 0.45, 10),
+      new THREE.MeshStandardMaterial({
+        color: 0x3f3128,
+        roughness: 0.6
+      })
+    );
+    glassHandle.rotation.x = Math.PI / 2;
+    glassHandle.position.set(0, -1.25, 0.12);
+
+    magnifyingGlass.add(glassLens, glassHandle);
+    rightArm.add(magnifyingGlass);
+  }
+
   // =========================
   // PIERNAS (mejor proporción)
   // =========================
@@ -597,23 +742,23 @@ function createPerson(
     const g = new THREE.Group();
 
     const upper = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.14, 0.16, 0.6, 10),
+      new THREE.CylinderGeometry(0.14, 0.16, 0.7, 10),
       pantsMat
     );
 
     const lower = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.12, 0.14, 0.6, 10),
+      new THREE.CylinderGeometry(0.12, 0.14, 0.7, 10),
       pantsMat
     );
 
     const foot = new THREE.Mesh(
-      new THREE.BoxGeometry(0.25, 0.12, 0.4),
+      new THREE.BoxGeometry(0.28, 0.14, 0.42),
       pantsMat
     );
 
-    upper.position.y = -0.3;
-    lower.position.y = -0.95;
-    foot.position.y = -1.35;
+    upper.position.y = -0.35;
+    lower.position.y = -1.05;
+    foot.position.y = -1.55;
 
     g.add(upper, lower, foot);
     g.position.set(xSide, 0.95, 0);
@@ -638,46 +783,63 @@ function createPerson(
 
     const hatMat = new THREE.MeshStandardMaterial({
       color: hatColorFinal,
-      roughness: 0.5
+      roughness: 0.45,
+      metalness: 0.1
     });
 
-    const hatTop = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.42, 0.45, 0.25, 12),
-      hatMat
-    );
-
-    const hatBrim = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.58, 0.6, 0.05, 12),
-      hatMat
-    );
-
-    hatTop.position.y = 3.05;
-    hatBrim.position.y = 2.85;
-
     const hat = new THREE.Group();
-    hat.add(hatTop, hatBrim);
+
+    if (type === "police") {
+      const hatTop = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.42, 0.45, 0.22, 16),
+        hatMat
+      );
+      hatTop.position.y = 3.1;
+
+      const hatBrim = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.6, 0.6, 0.05, 16),
+        hatMat
+      );
+      hatBrim.position.y = 2.9;
+
+      const hatFront = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 0.18, 0.18),
+        hatMat
+      );
+      hatFront.position.set(0, 3.2, 0.18);
+
+      const badgePlate = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.1, 0.1, 0.03, 12),
+        new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 })
+      );
+      badgePlate.rotation.x = Math.PI / 2;
+      badgePlate.position.set(0, 3.15, 0.27);
+
+      hat.add(hatTop, hatBrim, hatFront, badgePlate);
+    } else {
+      const crown = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.34, 0.38, 0.3, 16),
+        hatMat
+      );
+      crown.position.y = 3.05;
+
+      const brim = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.58, 0.58, 0.05, 16),
+        hatMat
+      );
+      brim.position.y = 2.85;
+
+      const crease = new THREE.Mesh(
+        new THREE.BoxGeometry(0.28, 0.06, 0.12),
+        new THREE.MeshStandardMaterial({ color: 0x1c1612, roughness: 0.7 })
+      );
+      crease.position.set(0, 3.12, 0);
+      crease.rotation.x = 0.1;
+
+      hat.add(crown, brim, crease);
+    }
+
     person.add(hat);
-  }
-
-  // =========================
-  // IDENTIDAD VISUAL EXTRA
-  // =========================
-  if (type === "police") {
-    const badge = new THREE.Mesh(
-      new THREE.BoxGeometry(0.18, 0.25, 0.05),
-      new THREE.MeshStandardMaterial({
-        color: 0xffd700,
-        metalness: 0.8,
-        roughness: 0.3
-      })
-    );
-
-    badge.position.set(0.25, 1.35, 0.45);
-    person.add(badge);
-  }
-
-  if (type === "detective") {
-    torso.scale.y = 1.15;
   }
 
   person.userData = {
