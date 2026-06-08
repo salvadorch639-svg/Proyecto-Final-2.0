@@ -275,34 +275,160 @@ for (let i = -65; i < 65; i += 8) {
 // EDIFICIOS
 
 for (let i = 0; i < 35; i++) {
+  const width = 4 + Math.random() * 6;
+  const depth = 4 + Math.random() * 6;
+  const height = 6 + Math.random() * 22;
+  const baseHue = 0.52 + Math.random() * 0.16;
+  const baseColor = new THREE.Color().setHSL(baseHue, 0.2, 0.12 + Math.random() * 0.12);
+  const buildingGroup = new THREE.Group();
 
-  const h =
-    5 + Math.random() * 18;
-
-  const building =
-    new THREE.Mesh(
-      new THREE.BoxGeometry(
-        6,
-        h,
-        6
-      ),
-      new THREE.MeshStandardMaterial({
-        color: 0x30353d
-      })
-    );
-
-  building.position.set(
-    (Math.random() - 0.5) * 180,
-    h / 2,
-    Math.random() > 0.5
-      ? 25 + Math.random() * 40
-      : -25 - Math.random() * 40
+  const building = new THREE.Mesh(
+    new THREE.BoxGeometry(width, height, depth),
+    new THREE.MeshStandardMaterial({
+      color: baseColor,
+      roughness: 0.34,
+      metalness: 0.07
+    })
   );
-
   building.castShadow = true;
   building.receiveShadow = true;
+  buildingGroup.add(building);
 
-  scene.add(building);
+  const windowOn = new THREE.MeshStandardMaterial({
+    color: 0xdceeff,
+    emissive: 0x7bb2ff,
+    emissiveIntensity: 0.35 + Math.random() * 0.15,
+    roughness: 0.18
+  });
+  const windowOff = new THREE.MeshStandardMaterial({
+    color: 0x1f2736,
+    roughness: 0.55
+  });
+
+  const floors = Math.max(2, Math.round(height / 2.2));
+  const cols = Math.max(2, Math.round(width / 1.3));
+  const sideCols = Math.max(1, Math.round(depth / 1.5));
+  const rowHeight = height / (floors + 1);
+
+  function addFaceWindows(sideZ) {
+    for (let y = 0; y < floors; y++) {
+      for (let x = 0; x < cols; x++) {
+        const isLit = Math.random() > 0.3;
+        const windowMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(0.3, 0.4, 0.06),
+          isLit ? windowOn : windowOff
+        );
+        windowMesh.position.set(
+          (x - (cols - 1) / 2) * 0.92,
+          -height / 2 + 1 + y * rowHeight,
+          sideZ
+        );
+        buildingGroup.add(windowMesh);
+      }
+    }
+  }
+
+  function addSideWindows(sideX) {
+    for (let y = 0; y < floors - 1; y++) {
+      for (let z = 0; z < sideCols; z++) {
+        const isLit = Math.random() > 0.4;
+        const windowMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(0.26, 0.36, 0.06),
+          isLit ? windowOn : windowOff
+        );
+        windowMesh.position.set(
+          sideX,
+          -height / 2 + 1 + y * rowHeight,
+          (z - (sideCols - 1) / 2) * 0.82
+        );
+        buildingGroup.add(windowMesh);
+      }
+    }
+  }
+
+  addFaceWindows(depth / 2 + 0.03);
+  addFaceWindows(-depth / 2 - 0.03);
+  addSideWindows(width / 2 + 0.03);
+  addSideWindows(-width / 2 - 0.03);
+
+  const baseBandMaterial = new THREE.MeshStandardMaterial({
+    color: baseColor.clone().offsetHSL(0, 0, 0.08),
+    roughness: 0.25,
+    metalness: 0.02
+  });
+  const bandCount = Math.max(1, Math.floor(height / 6));
+  for (let j = 1; j <= bandCount; j++) {
+    const band = new THREE.Mesh(
+      new THREE.BoxGeometry(width * 0.95, 0.08, depth * 0.95),
+      baseBandMaterial
+    );
+    band.position.set(0, -height / 2 + j * (height / (bandCount + 1)), 0);
+    buildingGroup.add(band);
+  }
+
+  const entrance = new THREE.Mesh(
+    new THREE.BoxGeometry(width * 0.35, 1.4, 0.16),
+    new THREE.MeshStandardMaterial({ color: 0x222a36, roughness: 0.4, metalness: 0.05 })
+  );
+  entrance.position.set(0, -height / 2 + 0.7, depth / 2 + 0.08);
+  buildingGroup.add(entrance);
+
+  const doorGlass = new THREE.Mesh(
+    new THREE.BoxGeometry(width * 0.2, 0.9, 0.04),
+    windowOn
+  );
+  doorGlass.position.set(0, -height / 2 + 0.7, depth / 2 + 0.1);
+  buildingGroup.add(doorGlass);
+
+  const canopy = new THREE.Mesh(
+    new THREE.BoxGeometry(width * 0.45, 0.08, 0.5),
+    new THREE.MeshStandardMaterial({ color: 0x1f2732, roughness: 0.45 })
+  );
+  canopy.position.set(0, -height / 2 + 1.15, depth / 2 + 0.26);
+  buildingGroup.add(canopy);
+
+  const roof = new THREE.Mesh(
+    new THREE.BoxGeometry(width * 0.72, 0.08, depth * 0.72),
+    new THREE.MeshStandardMaterial({
+      color: 0x1d242f,
+      roughness: 0.6,
+      metalness: 0.08
+    })
+  );
+  roof.position.set(0, height / 2 + 0.04, 0);
+  buildingGroup.add(roof);
+
+  if (Math.random() > 0.45) {
+    const tank = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.18, 0.8, 10),
+      new THREE.MeshStandardMaterial({ color: 0x505a70, roughness: 0.3 })
+    );
+    tank.position.set(-width * 0.2, height / 2 + 0.5, -depth * 0.2);
+    buildingGroup.add(tank);
+  }
+
+  if (Math.random() > 0.7) {
+    const vent = new THREE.Mesh(
+      new THREE.BoxGeometry(0.35, 0.18, 0.18),
+      new THREE.MeshStandardMaterial({ color: 0x3d4651, roughness: 0.35 })
+    );
+    vent.position.set(width * 0.25, height / 2 + 0.18, depth * -0.25);
+    buildingGroup.add(vent);
+  }
+
+  const sideIndex = i < 18 ? i : i - 18;
+  const sideSign = i < 18 ? 1 : -1;
+  const xOffset = -76 + sideIndex * 9 + (Math.random() - 0.5) * 2;
+  const zOffset = sideSign * (18 + Math.random() * 10);
+
+  buildingGroup.position.set(
+    xOffset,
+    height / 2,
+    zOffset
+  );
+  buildingGroup.castShadow = true;
+  buildingGroup.receiveShadow = true;
+  scene.add(buildingGroup);
 }
 
 // FAROLAS
@@ -681,7 +807,7 @@ function createPerson(
       })
     );
     hair.scale.y = 0.65;
-    hair.position.set(0, 2.72, 0);
+    hair.position.set(0, 2.62, 0);
     person.add(hair);
 
     const coatBack = new THREE.Mesh(
@@ -699,14 +825,14 @@ function createPerson(
     new THREE.CylinderGeometry(0.14, 0.16, 0.18, 10),
     skinMat
   );
-  neck.position.y = 1.9;
+  neck.position.y = 1.7;
   person.add(neck);
 
   const head = new THREE.Mesh(
     new THREE.SphereGeometry(0.42, 20, 20),
     skinMat
   );
-  head.position.y = 2.25;
+  head.position.y = 2.1;
   head.castShadow = true;
   person.add(head);
 
@@ -887,7 +1013,7 @@ function createPerson(
     });
 
     const hat = new THREE.Group();
-    hat.position.y = 2.55;
+    hat.position.y = 2.45;
 
     if (type === "police") {
       const hatTop = new THREE.Mesh(
@@ -917,7 +1043,7 @@ function createPerson(
 
       hat.add(hatTop, hatBrim, hatFront, badgePlate);
     } else {
-      hat.position.y = 2.7;
+      hat.position.y = 2.6;
 
       const crown = new THREE.Mesh(
         new THREE.CylinderGeometry(0.34, 0.38, 0.3, 16),
@@ -996,6 +1122,147 @@ function createPoliceTape(x, z, rotationY) {
 
 const policeTape = createPoliceTape(0, 7.8, 0); // lado derecho de la carretera
 const policeTapeCopy = createPoliceTape(0, -7.8, 0); // lado izquierdo de la carretera
+
+function createCitizen(x, z) {
+  const group = new THREE.Group();
+
+  const skinMat = new THREE.MeshStandardMaterial({
+    color: 0xf0c7a1,
+    roughness: 0.55
+  });
+
+  const clothColor = new THREE.Color().setHSL(0.08 + Math.random() * 0.18, 0.45, 0.45);
+  const clothMat = new THREE.MeshStandardMaterial({
+    color: clothColor,
+    roughness: 0.7,
+    metalness: 0.05
+  });
+
+  const pantsMat = new THREE.MeshStandardMaterial({
+    color: 0x2b3040,
+    roughness: 0.85
+  });
+
+  const torso = new THREE.Mesh(
+    new THREE.BoxGeometry(0.55, 0.85, 0.4),
+    clothMat
+  );
+  torso.position.y = 1.05;
+  group.add(torso);
+
+  const belt = new THREE.Mesh(
+    new THREE.BoxGeometry(0.55, 0.1, 0.18),
+    new THREE.MeshStandardMaterial({
+      color: 0x111111,
+      roughness: 0.35,
+      metalness: 0.2
+    })
+  );
+  belt.position.set(0, 0.82, 0.17);
+  group.add(belt);
+
+  const neck = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.08, 0.08, 0.16, 10),
+    skinMat
+  );
+  neck.position.y = 1.35;
+  group.add(neck);
+
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 12, 12),
+    skinMat
+  );
+  head.position.y = 1.7;
+  head.castShadow = true;
+  group.add(head);
+
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+  const eyeL = new THREE.Mesh(
+    new THREE.SphereGeometry(0.04, 8, 8),
+    eyeMat
+  );
+  eyeL.position.set(-0.08, 0.05, 0.2);
+  const eyeR = eyeL.clone();
+  eyeR.position.x = 0.08;
+  head.add(eyeL, eyeR);
+
+  const nose = new THREE.Mesh(
+    new THREE.ConeGeometry(0.04, 0.14, 8),
+    skinMat
+  );
+  nose.rotation.x = Math.PI / 2;
+  nose.position.set(0, -0.02, 0.2);
+  head.add(nose);
+
+  const mouth = new THREE.Mesh(
+    new THREE.BoxGeometry(0.1, 0.03, 0.02),
+    new THREE.MeshStandardMaterial({ color: 0x772222, roughness: 0.7 })
+  );
+  mouth.position.set(0, -0.08, 0.18);
+  mouth.rotation.x = 0.04;
+  head.add(mouth);
+
+  const hair = new THREE.Mesh(
+    new THREE.SphereGeometry(0.25, 12, 12),
+    new THREE.MeshStandardMaterial({ color: 0x22150f, roughness: 0.6 })
+  );
+  hair.scale.y = 0.55;
+  hair.position.set(0, 0.16, 0);
+  head.add(hair);
+
+  const leftLeg = new THREE.Group();
+  const leftLegUpper = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.09, 0.1, 0.35, 10),
+    pantsMat
+  );
+  leftLegUpper.position.y = 0.25;
+  const leftFoot = new THREE.Mesh(
+    new THREE.BoxGeometry(0.18, 0.08, 0.3),
+    pantsMat
+  );
+  leftFoot.position.set(0, -0.23, 0.1);
+  leftLeg.add(leftLegUpper, leftFoot);
+  leftLeg.position.set(-0.16, 0.25, 0);
+  group.add(leftLeg);
+
+  const rightLeg = leftLeg.clone();
+  rightLeg.position.x = 0.16;
+  group.add(rightLeg);
+
+  const leftArm = new THREE.Group();
+  const leftArmUpper = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.06, 0.07, 0.35, 10),
+    clothMat
+  );
+  leftArmUpper.position.y = -0.18;
+  const leftHand = new THREE.Mesh(
+    new THREE.SphereGeometry(0.07, 8, 8),
+    skinMat
+  );
+  leftHand.position.set(0, -0.37, 0);
+  leftArm.add(leftArmUpper, leftHand);
+  leftArm.position.set(-0.38, 1.05, 0);
+  leftArm.rotation.z = 0.35;
+  group.add(leftArm);
+
+  const rightArm = leftArm.clone();
+  rightArm.position.x = 0.38;
+  rightArm.rotation.z = -0.35;
+  group.add(rightArm);
+
+  group.position.set(x, 0.6, z);
+  const silhouetteTarget = new THREE.Vector3(0, 0.6, -1);
+  group.lookAt(silhouetteTarget);
+  group.castShadow = true;
+  group.receiveShadow = true;
+  scene.add(group);
+  return group;
+}
+
+const citizen1 = createCitizen(-1.4, 9.5);
+const citizen2 = createCitizen(1.2, 9.8);
+const citizen3 = createCitizen(-1.2, -9.5);
+const citizen4 = createCitizen(1.4, -9.8);
 
 function animatePoliceTape(tape, t) {
   const geometry = tape.geometry;
