@@ -252,6 +252,49 @@ road.position.y = 0.01;
 
 scene.add(road);
 
+const pavementMaterial = new THREE.MeshStandardMaterial({
+  color: 0x2f2f2f,
+  roughness: 0.8,
+  metalness: 0.05
+});
+
+const sidewalkWidth = 4;
+[10, -10].forEach(z => {
+  const sidewalk = new THREE.Mesh(
+    new THREE.PlaneGeometry(140, sidewalkWidth),
+    pavementMaterial
+  );
+  sidewalk.rotation.x = -Math.PI / 2;
+  sidewalk.position.set(0, 0.02, z);
+  scene.add(sidewalk);
+});
+
+const pavementTileSize = 7;
+const pavementTileSpacing = 7.2;
+const pavementZones = [12, 40];
+pavementZones.forEach(zone => {
+  for (let x = -78; x <= 78; x += pavementTileSpacing) {
+    for (let z = zone; z <= 42; z += pavementTileSpacing) {
+      const tile = new THREE.Mesh(
+        new THREE.PlaneGeometry(pavementTileSize, pavementTileSize),
+        pavementMaterial
+      );
+      tile.rotation.x = -Math.PI / 2;
+      tile.position.set(x, 0.02, z);
+      scene.add(tile);
+    }
+    for (let z = -zone; z >= -42; z -= pavementTileSpacing) {
+      const tile = new THREE.Mesh(
+        new THREE.PlaneGeometry(pavementTileSize, pavementTileSize),
+        pavementMaterial
+      );
+      tile.rotation.x = -Math.PI / 2;
+      tile.position.set(x, 0.02, z);
+      scene.add(tile);
+    }
+  }
+});
+
 for (let i = -65; i < 65; i += 8) {
 
   const line =
@@ -423,6 +466,14 @@ for (let i = 0; i < 35; i++) {
   const sideSign = i < 18 ? 1 : -1;
   const xOffset = -76 + sideIndex * 9 + (Math.random() - 0.5) * 2;
   const zOffset = sideSign * (18 + Math.random() * 10);
+
+  const pavementBase = new THREE.Mesh(
+    new THREE.PlaneGeometry(width + 1, depth + 1),
+    pavementMaterial
+  );
+  pavementBase.rotation.x = -Math.PI / 2;
+  pavementBase.position.set(xOffset, 0.02, zOffset);
+  scene.add(pavementBase);
 
   buildingGroup.position.set(
     xOffset,
@@ -598,6 +649,301 @@ function createPoliceCar(x, z) {
   };
 }
 
+function createAmbulance(x, z) {
+  const ambulance = new THREE.Group();
+
+  const bodyMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.28,
+    metalness: 0.06
+  });
+
+  const hood = new THREE.Mesh(
+    new THREE.BoxGeometry(1.4, 0.9, 2.4),
+    bodyMaterial
+  );
+  hood.position.set(-2.05, 0.52, 0);
+  ambulance.add(hood);
+
+  const cabin = new THREE.Mesh(
+    new THREE.BoxGeometry(1.8, 1.1, 2.4),
+    bodyMaterial
+  );
+  cabin.position.set(-0.6, 0.75, 0);
+  ambulance.add(cabin);
+
+  const rearBox = new THREE.Mesh(
+    new THREE.BoxGeometry(2.8, 1.6, 2.4),
+    bodyMaterial
+  );
+  rearBox.position.set(1.35, 0.8, 0);
+  ambulance.add(rearBox);
+
+  const skirt = new THREE.Mesh(
+    new THREE.BoxGeometry(5.7, 0.22, 2.6),
+    new THREE.MeshStandardMaterial({
+      color: 0xe6e6e6,
+      roughness: 0.55,
+      metalness: 0.04
+    })
+  );
+  skirt.position.set(0.05, 0.14, 0);
+  ambulance.add(skirt);
+
+  const stripeMaterial = new THREE.MeshStandardMaterial({
+    color: 0xdd1f1f,
+    roughness: 0.5,
+    metalness: 0.02
+  });
+
+  const roofStripe = new THREE.Mesh(
+    new THREE.BoxGeometry(5.4, 0.18, 0.26),
+    stripeMaterial
+  );
+  roofStripe.position.set(0.05, 0.56, 1.1);
+  ambulance.add(roofStripe);
+
+  const roofStripeBack = roofStripe.clone();
+  roofStripeBack.position.z = -1.1;
+  ambulance.add(roofStripeBack);
+
+  const sideStripe = new THREE.Mesh(
+    new THREE.BoxGeometry(0.18, 0.26, 5.4),
+    stripeMaterial
+  );
+  sideStripe.position.set(0.05, 0.53, 0);
+  sideStripe.rotation.y = Math.PI / 2;
+  ambulance.add(sideStripe);
+
+  const windowMaterial = new THREE.MeshStandardMaterial({
+    color: 0x1f3245,
+    roughness: 0.18,
+    metalness: 0.35,
+    opacity: 0.78,
+    transparent: true
+  });
+
+  const windshield = new THREE.Mesh(
+    new THREE.BoxGeometry(1.7, 0.72, 0.08),
+    windowMaterial
+  );
+  windshield.position.set(-1.7, 0.88, -1.05);
+  ambulance.add(windshield);
+
+  const sideWindowLeft = new THREE.Mesh(
+    new THREE.BoxGeometry(0.08, 0.56, 0.9),
+    windowMaterial
+  );
+  sideWindowLeft.position.set(-2.3, 0.88, 0.72);
+  ambulance.add(sideWindowLeft);
+
+  const sideWindowRight = sideWindowLeft.clone();
+  sideWindowRight.position.z = -0.72;
+  ambulance.add(sideWindowRight);
+
+  const panelWindow = new THREE.Mesh(
+    new THREE.BoxGeometry(0.08, 0.72, 0.9),
+    windowMaterial
+  );
+  panelWindow.position.set(2.45, 0.92, 0);
+  ambulance.add(panelWindow);
+
+  const frontLightL = new THREE.Mesh(
+    new THREE.BoxGeometry(0.18, 0.18, 0.14),
+    new THREE.MeshStandardMaterial({
+      color: 0xffffcc,
+      emissive: 0xffffbb,
+      emissiveIntensity: 0.9
+    })
+  );
+  frontLightL.position.set(-2.55, 0.52, 0.85);
+  ambulance.add(frontLightL);
+
+  const frontLightR = frontLightL.clone();
+  frontLightR.position.z = -0.85;
+  ambulance.add(frontLightR);
+
+  const indicatorL = new THREE.Mesh(
+    new THREE.BoxGeometry(0.12, 0.12, 0.08),
+    new THREE.MeshStandardMaterial({ color: 0xffa800, roughness: 0.5 })
+  );
+  indicatorL.position.set(-2.55, 0.52, 1.15);
+  ambulance.add(indicatorL);
+
+  const indicatorR = indicatorL.clone();
+  indicatorR.position.z = -1.15;
+  ambulance.add(indicatorR);
+
+  const grille = new THREE.Mesh(
+    new THREE.BoxGeometry(0.9, 0.22, 0.16),
+    new THREE.MeshStandardMaterial({
+      color: 0x242424,
+      roughness: 0.5,
+      metalness: 0.45
+    })
+  );
+  grille.position.set(-2.45, 0.44, 0);
+  ambulance.add(grille);
+
+  const bumper = new THREE.Mesh(
+    new THREE.BoxGeometry(0.9, 0.2, 0.34),
+    new THREE.MeshStandardMaterial({
+      color: 0x2f2f2f,
+      roughness: 0.45,
+      metalness: 0.28
+    })
+  );
+  bumper.position.set(-2.35, 0.2, 0);
+  ambulance.add(bumper);
+
+  const sirenBar = new THREE.Group();
+
+  const sirenBase = new THREE.Mesh(
+    new THREE.BoxGeometry(1.8, 0.18, 0.6),
+    new THREE.MeshStandardMaterial({
+      color: 0x111111,
+      roughness: 0.65,
+      metalness: 0.2
+    })
+  );
+  sirenBase.position.set(-0.95, 1.32, 0);
+  sirenBar.add(sirenBase);
+
+  const sirenRed = new THREE.Mesh(
+    new THREE.BoxGeometry(0.45, 0.2, 0.28),
+    new THREE.MeshStandardMaterial({
+      color: 0xff2f2f,
+      emissive: 0xff5f5f,
+      emissiveIntensity: 1.5
+    })
+  );
+  sirenRed.position.set(-0.4, 1.35, 0.18);
+  sirenBar.add(sirenRed);
+
+  const sirenBlue = new THREE.Mesh(
+    new THREE.BoxGeometry(0.45, 0.2, 0.28),
+    new THREE.MeshStandardMaterial({
+      color: 0x2f7bff,
+      emissive: 0x5f9dff,
+      emissiveIntensity: 1.5
+    })
+  );
+  sirenBlue.position.set(-0.4, 1.35, -0.18);
+  sirenBar.add(sirenBlue);
+
+  const lightL = new THREE.Mesh(
+    new THREE.BoxGeometry(0.16, 0.16, 0.16),
+    new THREE.MeshStandardMaterial({
+      color: 0xff2f2f,
+      emissive: 0xff7f7f,
+      emissiveIntensity: 2
+    })
+  );
+  lightL.position.set(-0.4, 1.45, 0.35);
+  sirenBar.add(lightL);
+
+  const lightR = lightL.clone();
+  lightR.material = lightL.material.clone();
+  lightR.material.color.set(0x2f7bff);
+  lightR.material.emissive.set(0x7fbfff);
+  lightR.position.z = -0.35;
+  sirenBar.add(lightR);
+
+  const sirenCover = new THREE.Mesh(
+    new THREE.BoxGeometry(1.9, 0.14, 0.7),
+    new THREE.MeshStandardMaterial({
+      color: 0xadd8ff,
+      transparent: true,
+      opacity: 0.28,
+      roughness: 0.1
+    })
+  );
+  sirenCover.position.set(-0.95, 1.33, 0);
+  sirenBar.add(sirenCover);
+
+  ambulance.add(sirenBar);
+
+  const crossMaterial = new THREE.MeshStandardMaterial({
+    color: 0xdd1f1f,
+    roughness: 0.45
+  });
+  const crossHoriz = new THREE.Mesh(
+    new THREE.BoxGeometry(0.6, 0.14, 0.14),
+    crossMaterial
+  );
+  crossHoriz.position.set(1.0, 1.0, 0);
+  ambulance.add(crossHoriz);
+
+  const crossVert = new THREE.Mesh(
+    new THREE.BoxGeometry(0.14, 0.14, 0.6),
+    crossMaterial
+  );
+  crossVert.position.set(1.0, 1.0, 0);
+  ambulance.add(crossVert);
+
+  const doorLine = new THREE.Mesh(
+    new THREE.BoxGeometry(0.08, 0.54, 1.0),
+    new THREE.MeshStandardMaterial({
+      color: 0xcccccc,
+      roughness: 0.6,
+      metalness: 0.1
+    })
+  );
+  doorLine.position.set(0.6, 0.82, -1.0);
+  ambulance.add(doorLine);
+
+  const detailLine = new THREE.Mesh(
+    new THREE.BoxGeometry(0.08, 0.16, 0.68),
+    new THREE.MeshStandardMaterial({
+      color: 0xcccccc,
+      roughness: 0.6,
+      metalness: 0.1
+    })
+  );
+  detailLine.position.set(0.6, 0.7, 0.0);
+  ambulance.add(detailLine);
+
+  const tireMaterial = new THREE.MeshStandardMaterial({
+    color: 0x111111,
+    roughness: 0.42,
+    metalness: 0.2
+  });
+  const rimMaterial = new THREE.MeshStandardMaterial({
+    color: 0x6a6a6a,
+    roughness: 0.2,
+    metalness: 0.55
+  });
+
+  for (let wx of [-1.8, 1.8]) {
+    for (let wz of [-1.15, 1.15]) {
+      const wheel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.4, 0.4, 0.5, 16),
+        tireMaterial
+      );
+      wheel.rotation.z = Math.PI / 2;
+      wheel.rotation.y = Math.PI / 2;
+      wheel.position.set(wx, -0.5, wz);
+      ambulance.add(wheel);
+
+      const rim = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.22, 0.22, 0.2, 12),
+        rimMaterial
+      );
+      rim.rotation.z = Math.PI / 2;
+      rim.rotation.y = Math.PI / 2;
+      rim.position.set(wx, -0.5, wz);
+      ambulance.add(rim);
+    }
+  }
+
+  ambulance.position.set(x, 1, z);
+  ambulance.castShadow = true;
+  ambulance.receiveShadow = true;
+
+  scene.add(ambulance);
+  return ambulance;
+}
+
 const patrolA =
   createPoliceCar(
     -10,
@@ -609,6 +955,8 @@ const patrolB =
     10,
     2
   );
+
+const ambulance = createAmbulance(-10, -6);
 
   // ==========================================
 // PERSONAJES
@@ -1130,6 +1478,8 @@ const paperCubeMaterial = new THREE.MeshStandardMaterial({
   side: THREE.DoubleSide
 });
 
+const citizenGroups = [];
+
 function createPoliceTape(x, z, rotationY) {
   const geometry = paperCubeGeometry.clone();
   const tape = new THREE.Mesh(geometry, paperCubeMaterial);
@@ -1146,10 +1496,29 @@ function createPoliceTape(x, z, rotationY) {
   return tape;
 }
 
-const policeTape = createPoliceTape(0, 7.8, 0); // lado derecho de la carretera
-const policeTapeCopy = createPoliceTape(0, -7.8, 0); // lado izquierdo de la carretera
+function createTapePost(x, z) {
+  const post = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.12, 0.12, 4, 12),
+    new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.65 })
+  );
 
-function createCitizen(x, z) {
+  post.position.set(x, 2, z);
+  post.castShadow = true;
+  post.receiveShadow = true;
+  scene.add(post);
+
+  return post;
+}
+
+const policeTape = createPoliceTape(0, 7.8, 0); // lado derecho de la carretera
+createTapePost(-15, 7.8);
+createTapePost(15, 7.8);
+const policeTapeCopy = createPoliceTape(0, -7.8, 0); // lado izquierdo de la carretera
+createTapePost(-15, -7.8);
+createTapePost(15, -7.8);
+
+function createCitizen(x, z, options = {}) {
+  const { behavior = 'watch', pathAxis = 'x' } = options;
   const group = new THREE.Group();
 
   const skinMat = new THREE.MeshStandardMaterial({
@@ -1278,10 +1647,36 @@ function createCitizen(x, z) {
 
   group.position.set(x, 0.6, z);
   const silhouetteTarget = new THREE.Vector3(0, 0.6, -1);
-  group.lookAt(silhouetteTarget);
+  const walkDirection = x === 0 ? (Math.random() > 0.5 ? 1 : -1) : Math.sign(x);
+  const walkSpeed = 6 + Math.random() * 2;
+  const walkBoundary = 85;
+
+  group.userData = {
+    head,
+    behavior,
+    pathAxis,
+    walkDirection,
+    walkSpeed,
+    walkBoundary,
+    baseX: x,
+    baseZ: z
+  };
+
+  if (behavior !== 'walk') {
+    group.lookAt(silhouetteTarget);
+  } else {
+    if (pathAxis === 'x') {
+      group.rotation.y = walkDirection > 0 ? 0 : Math.PI;
+      group.rotation.x = Math.PI; // rotar 180 grados en el eje x para los caminantes
+    } else {
+      group.rotation.y = walkDirection > 0 ? Math.PI / 2 : -Math.PI / 2;
+    }
+  }
+
   group.castShadow = true;
   group.receiveShadow = true;
   scene.add(group);
+  citizenGroups.push(group);
   return group;
 }
 
@@ -1289,6 +1684,10 @@ const citizen1 = createCitizen(-1.4, 9.5);
 const citizen2 = createCitizen(1.2, 9.8);
 const citizen3 = createCitizen(-1.2, -9.5);
 const citizen4 = createCitizen(1.4, -9.8);
+const watcher1 = createCitizen(-8, 9.4, { behavior: 'watch' });
+const watcher2 = createCitizen(8, 9.4, { behavior: 'watch' });
+const watcher3 = createCitizen(-8, -9.4, { behavior: 'watch' });
+const watcher4 = createCitizen(8, -9.4, { behavior: 'watch' });
 
 function animatePoliceTape(tape, t) {
   const geometry = tape.geometry;
@@ -1392,7 +1791,7 @@ function createForensicSilhouette(x, z) {
   });
 
   const head = new THREE.Mesh(
-    new THREE.CircleGeometry(0.35, 32),
+    new THREE.CircleGeometry(0.28, 32),
     material
   );
   head.rotation.x = -Math.PI / 2;
@@ -1400,40 +1799,40 @@ function createForensicSilhouette(x, z) {
   silhouette.add(head);
 
   const torso = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, 0.05, 1.2),
+    new THREE.BoxGeometry(0.55, 0.05, 0.75),
     material
   );
-  torso.position.set(0, 0.02, -0.9);
+  torso.position.set(0, 0.02, -0.8);
   silhouette.add(torso);
 
   const leftArm = new THREE.Mesh(
-    new THREE.BoxGeometry(0.25, 0.05, 0.75),
+    new THREE.BoxGeometry(0.18, 0.05, 0.55),
     material
   );
-  leftArm.rotation.y = Math.PI / 8;
-  leftArm.position.set(-0.55, 0.02, -0.45);
+  leftArm.rotation.y = Math.PI / 28;
+  leftArm.position.set(-0.45, 0.02, -0.05);
   silhouette.add(leftArm);
 
   const rightArm = new THREE.Mesh(
-    new THREE.BoxGeometry(0.25, 0.05, 0.75),
+    new THREE.BoxGeometry(0.18, 0.05, 0.55),
     material
   );
-  rightArm.rotation.y = -Math.PI / 8;
-  rightArm.position.set(0.55, 0.02, -0.45);
+  rightArm.rotation.y = -Math.PI / 28;
+  rightArm.position.set(0.45, 0.02, -0.05);
   silhouette.add(rightArm);
 
   const leftLeg = new THREE.Mesh(
-    new THREE.BoxGeometry(0.25, 0.05, 0.9),
+    new THREE.BoxGeometry(0.18, 0.05, 0.7),
     material
   );
-  leftLeg.position.set(-0.18, 0.02, -1.75);
+  leftLeg.position.set(-0.16, 0.02, -1.55);
   silhouette.add(leftLeg);
 
   const rightLeg = new THREE.Mesh(
-    new THREE.BoxGeometry(0.25, 0.05, 0.9),
+    new THREE.BoxGeometry(0.18, 0.05, 0.7),
     material
   );
-  rightLeg.position.set(0.18, 0.02, -1.75);
+  rightLeg.position.set(0.16, 0.02, -1.55);
   silhouette.add(rightLeg);
 
   silhouette.position.set(x, 0, z);
@@ -1510,30 +1909,51 @@ for (
   i++
 ) {
 
-  const puddle =
-    new THREE.Mesh(
-      new THREE.CircleGeometry(
-        1 + Math.random() * 2,
-        24
-      ),
-      new THREE.MeshPhysicalMaterial({
-        color: 0x222222,
-        roughness: 0.05,
-        clearcoat: 1,
-        metalness: 0.3
-      })
-    );
+  const size = 1 + Math.random() * 2;
+  const puddleGroup = new THREE.Group();
 
-  puddle.rotation.x =
-    -Math.PI / 2;
+  const puddle = new THREE.Mesh(
+    new THREE.CircleGeometry(size, 32),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x191f26,
+      roughness: 0.04,
+      metalness: 0.65,
+      clearcoat: 1,
+      clearcoatRoughness: 0.02,
+      reflectivity: 0.9,
+      transparent: true,
+      opacity: 0.96
+    })
+  );
 
-  puddle.position.set(
+  puddle.rotation.x = -Math.PI / 2;
+  puddle.position.y = 0.02;
+  puddleGroup.add(puddle);
+
+  const highlight = new THREE.Mesh(
+    new THREE.CircleGeometry(size * 0.4, 24),
+    new THREE.MeshStandardMaterial({
+      color: 0xebf7ff,
+      roughness: 0.2,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.08,
+      depthWrite: false
+    })
+  );
+  highlight.rotation.x = -Math.PI / 2;
+  highlight.position.set(0, 0.03, 0);
+  highlight.scale.set(1, 0.55, 1);
+  highlight.renderOrder = 1;
+  puddleGroup.add(highlight);
+
+  puddleGroup.position.set(
     (Math.random() - 0.5) * 80,
-    0.02,
+    0,
     (Math.random() - 0.5) * 30
   );
 
-  scene.add(puddle);
+  scene.add(puddleGroup);
 }
 
 // ==========================================
@@ -1607,6 +2027,35 @@ function animateDetective(p, t) {
   u.head.rotation.x = 0.05 + Math.sin(t * 0.6) * 0.02;
 }
 
+function animateCitizen(person, t) {
+  const u = person.userData;
+
+  if (u.behavior === 'walk') {
+    if (u.pathAxis === 'x') {
+      person.position.x += u.walkSpeed * 0.01 * u.walkDirection;
+      if (u.walkDirection > 0 && person.position.x > u.walkBoundary) {
+        person.position.x = u.baseX;
+      }
+      if (u.walkDirection < 0 && person.position.x < -u.walkBoundary) {
+        person.position.x = u.baseX;
+      }
+    } else {
+      person.position.z += u.walkSpeed * 0.01 * u.walkDirection;
+      if (u.walkDirection > 0 && person.position.z > u.walkBoundary) {
+        person.position.z = u.baseZ;
+      }
+      if (u.walkDirection < 0 && person.position.z < -u.walkBoundary) {
+        person.position.z = u.baseZ;
+      }
+    }
+  } else {
+    person.lookAt(0, 0.6, -1);
+    if (u.head) {
+      u.head.rotation.y = Math.sin(t * 0.3) * 0.08;
+    }
+  }
+}
+
 function rainReaction(person, t) {
   const wet = 0.02 + Math.sin(t * 3) * 0.01;
   person.traverse(o => {
@@ -1637,6 +2086,11 @@ function animate() {
   animateOfficer1(officer1, t);
   animateOfficer2(officer2, t);
   animateDetective(detective, t);
+
+  citizenGroups.forEach(citizen => {
+    breathe(citizen, t);
+    animateCitizen(citizen, t);
+  });
 
   rainReaction(officer1, t);
   rainReaction(officer2, t);
