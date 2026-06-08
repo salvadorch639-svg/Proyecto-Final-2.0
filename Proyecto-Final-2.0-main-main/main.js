@@ -12,7 +12,8 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.set(30, 18, 30);
+camera.position.set(0, 30, 45);
+camera.lookAt(0, 1, 0);
 
 const renderer = new THREE.WebGLRenderer({
   antialias: true
@@ -38,6 +39,8 @@ const controls =
   );
 
 controls.enableDamping = true;
+controls.target.set(0, 1, 0);
+controls.update();
 
 const fogSettings = {
   color: '#264e92',
@@ -69,7 +72,7 @@ const audioTracks = audioTrackData.map(track => {
   const audio = new Audio(track.src);
   audio.loop = true;
   audio.preload = 'auto';
-  audio.volume = 0.7;
+  audio.volume = 0.1;
   return { ...track, audio, enabled: true };
 });
 
@@ -438,41 +441,52 @@ for (
   i <= 60;
   i += 20
 ) {
+  [10, -10].forEach(z => {
+    const pole =
+      new THREE.Mesh(
+        new THREE.CylinderGeometry(
+          0.15,
+          0.15,
+          8
+        ),
+        new THREE.MeshStandardMaterial({
+          color: 0x666666
+        })
+      );
 
-  const pole =
-    new THREE.Mesh(
-      new THREE.CylinderGeometry(
-        0.15,
-        0.15,
-        8
-      ),
-      new THREE.MeshStandardMaterial({
-        color: 0x666666
-      })
+    pole.position.set(
+      i,
+      4,
+      z
     );
+    scene.add(pole);
 
-  pole.position.set(
-    i,
-    4,
-    10
-  );
+    const lampHead =
+      new THREE.Mesh(
+        new THREE.SphereGeometry(0.25, 12, 12),
+        new THREE.MeshStandardMaterial({
+          color: 0xfff8e1,
+          emissive: 0xffe8b8,
+          emissiveIntensity: 0.8
+        })
+      );
+    lampHead.position.set(i, 8.2, z);
+    scene.add(lampHead);
 
-  scene.add(pole);
+    const lamp =
+      new THREE.PointLight(
+        0xffeecc,
+        1.8,
+        25
+      );
 
-  const lamp =
-    new THREE.PointLight(
-      0xffeecc,
-      1.8,
-      25
+    lamp.position.set(
+      i,
+      8.2,
+      z
     );
-
-  lamp.position.set(
-    i,
-    8,
-    10
-  );
-
-  scene.add(lamp);
+    scene.add(lamp);
+  });
 }
 
 function createPoliceCar(x, z) {
@@ -902,19 +916,31 @@ function createPerson(
     return g;
   }
 
-  const leftArm = arm(-0.75);
-  const rightArm = arm(0.75);
+  const leftArm = arm(-0.55, 1.45);
+  const rightArm = arm(0.55, 1.45);
+
+  leftArm.position.z = -0.08;
+  rightArm.position.z = -0.08;
+  leftArm.rotation.set(-0.25, 0, 0.16);
+  rightArm.rotation.set(-0.25, 0, -0.16);
 
   if (type === "police") {
-    leftArm.position.y = 1.45;
-    leftArm.position.z = -0.1;
-    leftArm.rotation.x = -0.65;
-    leftArm.rotation.z = 0.12;
+    leftArm.position.x = -0.55;
+    rightArm.position.x = 0.55;
+    leftArm.rotation.set(-0.65, 0, 0.12);
+    rightArm.rotation.set(-0.85, 0, -0.12);
+  } else if (type === "civil") {
+    leftArm.position.set(-0.6, 1.45, -0.15);
+    leftArm.rotation.set(-0.45, 0, 0.18);
 
-    rightArm.position.y = 1.45;
-    rightArm.position.z = -0.1;
-    rightArm.rotation.x = -0.85;
-    rightArm.rotation.z = -0.12;
+    rightArm.position.set(0.6, 1.45, -0.15);
+    rightArm.rotation.set(-0.45, 0, -0.18);
+  } else if (type === "detective") {
+    leftArm.position.set(-0.55, 1.45, -0.15);
+    leftArm.rotation.set(-0.55, 0, 0.14);
+
+    rightArm.position.set(0.55, 1.45, -0.15);
+    rightArm.rotation.set(-1.0, 0, -0.10);
   }
 
   person.add(leftArm, rightArm);
@@ -1241,13 +1267,13 @@ function createCitizen(x, z) {
   );
   leftHand.position.set(0, -0.37, 0);
   leftArm.add(leftArmUpper, leftHand);
-  leftArm.position.set(-0.38, 1.05, 0);
-  leftArm.rotation.z = 0.35;
+  leftArm.position.set(-0.28, 1.18, -0.04);
+  leftArm.rotation.z = 0.18;
   group.add(leftArm);
 
   const rightArm = leftArm.clone();
-  rightArm.position.x = 0.38;
-  rightArm.rotation.z = -0.35;
+  rightArm.position.x = 0.28;
+  rightArm.rotation.z = -0.18;
   group.add(rightArm);
 
   group.position.set(x, 0.6, z);
