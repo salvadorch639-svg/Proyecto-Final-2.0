@@ -1625,24 +1625,75 @@ function createCitizen(x, z, options = {}) {
   group.add(rightLeg);
 
   const leftArm = new THREE.Group();
+  const armLen = 0.35;
+
   const leftArmUpper = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.06, 0.07, 0.35, 10),
+    new THREE.CylinderGeometry(0.06, 0.07, armLen, 10),
     clothMat
   );
-  leftArmUpper.position.y = -0.18;
+  leftArmUpper.position.set(0, -armLen / 2, 0);
+  leftArmUpper.rotation.set(-1.2, 0, 0);
+
+  const leftElbow = new THREE.Group();
+  leftElbow.position.set(0, -armLen, 0);
+  leftArmUpper.add(leftElbow);
+
+  const leftLowerGroup = new THREE.Group();
+  leftLowerGroup.position.set(0, 0, 0);
+
+  const leftArmLower = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.055, 0.06, armLen, 10),
+    clothMat
+  );
+  leftArmLower.position.set(0, -armLen / 2, 0);
+  leftLowerGroup.add(leftArmLower);
+
   const leftHand = new THREE.Mesh(
     new THREE.SphereGeometry(0.07, 8, 8),
     skinMat
   );
-  leftHand.position.set(0, -0.37, 0);
-  leftArm.add(leftArmUpper, leftHand);
-  leftArm.position.set(-0.28, 1.18, -0.04);
-  leftArm.rotation.z = 0.18;
+  leftHand.position.set(0, -armLen - 0.05, 0.25);
+  leftLowerGroup.add(leftHand);
+
+  leftElbow.add(leftLowerGroup);
+  leftArm.add(leftArmUpper);
+  leftArm.position.set(-0.28, 1.25, -0.04);
+  leftArm.rotation.set(0, 0.08, 0.08);
   group.add(leftArm);
 
-  const rightArm = leftArm.clone();
-  rightArm.position.x = 0.28;
-  rightArm.rotation.z = -0.18;
+  const rightArm = new THREE.Group();
+  const rightArmUpper = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.06, 0.07, armLen, 10),
+    clothMat
+  );
+  rightArmUpper.position.set(0, -armLen / 2, 0);
+  rightArmUpper.rotation.set(-1.2, 0, 0);
+
+  const rightElbow = new THREE.Group();
+  rightElbow.position.set(0, -armLen, 0);
+  rightArmUpper.add(rightElbow);
+
+  const rightLowerGroup = new THREE.Group();
+  rightLowerGroup.position.set(0, 0, 0);
+
+  const rightArmLower = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.055, 0.06, armLen, 10),
+    clothMat
+  );
+  rightArmLower.position.set(0, -armLen / 2, 0);
+  rightLowerGroup.add(rightArmLower);
+
+  const rightHand = new THREE.Mesh(
+    new THREE.SphereGeometry(0.07, 8, 8),
+    skinMat
+  );
+  rightHand.position.set(0, -armLen - 0.05, 0.25);
+  rightLowerGroup.add(rightHand);
+
+  rightElbow.add(rightLowerGroup);
+  rightArm.add(rightArmUpper);
+  rightArm.position.set(0.28, 1.25, -0.04);
+  rightArm.rotation.set(0, -0.08, -0.08);
   group.add(rightArm);
 
   group.position.set(x, 0.6, z);
